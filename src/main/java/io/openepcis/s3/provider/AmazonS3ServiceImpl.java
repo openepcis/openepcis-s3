@@ -44,7 +44,6 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
   public void verifyBucket() {
     try {
       client.headBucket(HeadBucketRequest.builder().bucket(config.bucket()).build());
-      return;
     } catch (NoSuchBucketException e) {
       client.createBucket(CreateBucketRequest.builder().bucket(config.bucket()).build());
     }
@@ -74,11 +73,7 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
   @Override
   public Uni<UploadResult> putAsync(String key, InputStream in, Optional<Long> contentLength) {
     return putAsync(
-        key,
-        in,
-        UploadMetadata.builder()
-            .contentLength(contentLength.isPresent() ? contentLength.get() : null)
-            .build());
+        key, in, UploadMetadata.builder().contentLength(contentLength.orElse(null)).build());
   }
 
   @Override
