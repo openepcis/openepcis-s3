@@ -24,9 +24,7 @@ import io.openepcis.s3.UploadResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
@@ -38,6 +36,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 /**
  * Wrapper managing async streamed upload for streams with unknown content-length This Wrapper will
@@ -119,9 +118,13 @@ public class S3AsyncUploadImpl implements S3AsyncUpload {
       throws IOException {
     final CreateMultipartUploadRequest.Builder requestBuilder =
         CreateMultipartUploadRequest.builder().bucket(bucketName).key(key);
-    if (metadata.getContentType().isPresent()) {
-      requestBuilder.contentType(metadata.getContentType().get());
+
+    if (metadata.getTags().isPresent() && CollectionUtils.isNotEmpty(metadata.getTags().get())) {
+      Set<Tag> tagSet = new HashSet<>();
+      metadata.getTags().get().forEach((k, v) -> tagSet.add(Tag.builder().key(k).value(v).build()));
+      requestBuilder.tagging(Tagging.builder().tagSet(tagSet).build());
     }
+    metadata.getContentType().ifPresent(requestBuilder::contentType);
     final CreateMultipartUploadResponse createMultipartUploadResponse =
         client.createMultipartUpload(requestBuilder.build());
     final List<CompletedPart> completedParts = new ArrayList<>();
