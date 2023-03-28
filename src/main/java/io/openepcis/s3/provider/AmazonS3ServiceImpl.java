@@ -21,7 +21,10 @@ import io.openepcis.s3.UploadMetadata;
 import io.openepcis.s3.UploadResult;
 import io.smallrye.mutiny.Uni;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -102,6 +105,23 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
       client.headObject(HeadObjectRequest.builder().bucket(config.bucket()).key(key).build());
       return true;
     } catch (NoSuchKeyException e) {
+      return false;
+    }
+  }
+
+  public boolean addTags(String key, Map<String, String> tags) {
+    Set<Tag> tagSet = new HashSet<>();
+    try {
+      tags.forEach((k, v) -> tagSet.add(Tag.builder().key(k).value(v).build()));
+      PutObjectTaggingResponse response =
+          client.putObjectTagging(
+              PutObjectTaggingRequest.builder()
+                  .bucket(config.bucket())
+                  .key(key)
+                  .tagging(Tagging.builder().tagSet(tagSet).build())
+                  .build());
+      return response.sdkHttpResponse().isSuccessful();
+    } catch (Exception e) {
       return false;
     }
   }

@@ -17,6 +17,7 @@ package io.openepcis.s3;
 
 import io.smallrye.mutiny.Uni;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Optional;
 
 public interface AmazonS3Service {
@@ -39,4 +40,6 @@ public interface AmazonS3Service {
   void delete(final String key);
 
   boolean exists(String key);
+
+  boolean addTags(String key, Map<String, String> tags);
 }
