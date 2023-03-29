@@ -21,10 +21,7 @@ import io.openepcis.s3.UploadMetadata;
 import io.openepcis.s3.UploadResult;
 import io.smallrye.mutiny.Uni;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
@@ -110,8 +107,12 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
   }
 
   public boolean addTags(String key, Map<String, String> tags) {
-    Set<Tag> tagSet = new HashSet<>();
     try {
+      List<Tag> tagSet =
+          client
+              .getObjectTagging(
+                  GetObjectTaggingRequest.builder().bucket(config.bucket()).key(key).build())
+              .tagSet();
       tags.forEach((k, v) -> tagSet.add(Tag.builder().key(k).value(v).build()));
       PutObjectTaggingResponse response =
           client.putObjectTagging(
