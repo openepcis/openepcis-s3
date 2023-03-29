@@ -109,10 +109,11 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
   public boolean addTags(String key, Map<String, String> tags) {
     try {
       List<Tag> tagSet =
-          client
-              .getObjectTagging(
-                  GetObjectTaggingRequest.builder().bucket(config.bucket()).key(key).build())
-              .tagSet();
+          new ArrayList<>(
+              client
+                  .getObjectTagging(
+                      GetObjectTaggingRequest.builder().bucket(config.bucket()).key(key).build())
+                  .tagSet());
       tags.forEach((k, v) -> tagSet.add(Tag.builder().key(k).value(v).build()));
       PutObjectTaggingResponse response =
           client.putObjectTagging(
