@@ -15,8 +15,12 @@
  */
 package io.openepcis.s3;
 
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import software.amazon.awssdk.services.s3.model.ObjectVersion;
+
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -36,6 +40,8 @@ public interface AmazonS3Service {
   Uni<UploadResult> putAsync(String key, InputStream in, UploadMetadata metadata);
 
   InputStream get(final String key);
+
+  List<ObjectVersion> getAllVersions(String key);
 
   void delete(final String key);
 

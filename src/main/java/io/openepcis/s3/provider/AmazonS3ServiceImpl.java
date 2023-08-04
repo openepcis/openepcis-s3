@@ -19,6 +19,7 @@ import io.openepcis.s3.AmazonS3Service;
 import io.openepcis.s3.S3AsyncUpload;
 import io.openepcis.s3.UploadMetadata;
 import io.openepcis.s3.UploadResult;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -87,6 +88,15 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
     final GetObjectRequest getObjectRequest =
         GetObjectRequest.builder().bucket(config.bucket()).key(key).build();
     return client.getObject(getObjectRequest, ResponseTransformer.toInputStream());
+  }
+//check for object version list
+  @Override
+  public List<ObjectVersion> getAllVersions(String key) {
+    final ListObjectVersionsRequest listObjectVersionsRequest =
+            ListObjectVersionsRequest.builder().bucket(config.bucket()).prefix(key).build();
+    final ListObjectVersionsResponse listObjectVersionsResponse =
+            client.listObjectVersions(listObjectVersionsRequest);
+    return listObjectVersionsResponse.versions();
   }
 
   @Override
