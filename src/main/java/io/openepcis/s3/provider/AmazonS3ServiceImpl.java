@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.ObjectVersion;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -38,6 +39,8 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
   private final S3Client client;
 
   private final S3Config config;
+
+
 
   private final S3AsyncUpload asyncUpload;
 
@@ -85,8 +88,17 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
 
   @Override
   public InputStream get(String key) {
+    final String object_key  = key.contains("?versionId=") ? key.substring(0,key.indexOf("?")) : key;
+    final String versionID = key.contains("?versionId=") ? key.substring((key.indexOf("versionId=")+"versionId=".length())) : null;
+    final GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(config.bucket()).key(object_key).versionId(versionID).build();
+    return client.getObject(getObjectRequest, ResponseTransformer.toInputStream());
+  }
+
+
+  @Override
+  public InputStream getObjectWithLatestVersion(String key) {
     final GetObjectRequest getObjectRequest =
-        GetObjectRequest.builder().bucket(config.bucket()).key(key).build();
+            GetObjectRequest.builder().bucket(config.bucket()).key(key).versionId("null").build();
     return client.getObject(getObjectRequest, ResponseTransformer.toInputStream());
   }
 //check for object version list
@@ -99,6 +111,27 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
     return listObjectVersionsResponse.versions();
   }
 
+  /*public String getLatestVersionId(String objectKey) {
+    ListObjectVersionsRequest listVersionsRequest = ListObjectVersionsRequest.builder()
+            .bucket(config.bucket())
+            .prefix(objectKey)
+            .build();
+    ListObjectVersionsResponse listVersionsResponse = client.listObjectVersions(listVersionsRequest);
+   List<ObjectVersion> objectVersions = listVersionsResponse.versions();
+    objectVersions.sort(Comparator.comparing(ObjectVersion::lastModified).reversed());
+    return objectVersions.get(0).versionId();
+  }*/
+@Override
+  public boolean hasVersionId( String objectKey) {
+
+  HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+          .bucket(config.bucket())
+          .key(objectKey)
+          .build();
+  HeadObjectResponse headObjectResponse = client.headObject(headObjectRequest);
+  return headObjectResponse.versionId() != null;
+
+}
   @Override
   public void delete(String key) {
     final DeleteObjectRequest deleteObjectRequest =
