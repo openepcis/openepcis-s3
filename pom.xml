@@ -86,7 +86,6 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>netty-nio-client</artifactId>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
