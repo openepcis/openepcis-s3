@@ -88,19 +88,17 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
 
   @Override
   public InputStream get(String key) {
-    final String object_key  = key.contains("?versionId=") ? key.substring(0,key.indexOf("?")) : key;
-    final String versionID = key.contains("?versionId=") ? key.substring((key.indexOf("versionId=")+"versionId=".length())) : null;
-    final GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(config.bucket()).key(object_key).versionId(versionID).build();
-    return client.getObject(getObjectRequest, ResponseTransformer.toInputStream());
+    return get(key, Optional.empty());
   }
 
-
-  @Override
-  public InputStream getObjectWithLatestVersion(String key) {
-    final GetObjectRequest getObjectRequest =
-            GetObjectRequest.builder().bucket(config.bucket()).key(key).versionId("null").build();
-    return client.getObject(getObjectRequest, ResponseTransformer.toInputStream());
+  public InputStream get(final String key, Optional<String> versionId) {
+    final GetObjectRequest.Builder getObjectRequestBuilder = GetObjectRequest.builder().bucket(config.bucket()).key(key);
+    if (versionId.isPresent()) {
+      getObjectRequestBuilder.versionId(versionId.get());
+    }
+    return client.getObject(getObjectRequestBuilder.build(), ResponseTransformer.toInputStream());
   }
+
 //check for object version list
   @Override
   public List<ObjectVersion> getAllVersions(String key) {

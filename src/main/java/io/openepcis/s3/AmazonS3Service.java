@@ -41,7 +41,7 @@ public interface AmazonS3Service {
 
   InputStream get(final String key);
 
-  InputStream getObjectWithLatestVersion(final String key);
+  InputStream get(final String key, Optional<String> version);
 
   List<ObjectVersion> getAllVersions(String key);
 
