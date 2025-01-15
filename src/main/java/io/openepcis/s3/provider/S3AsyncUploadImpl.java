@@ -121,7 +121,8 @@ public class S3AsyncUploadImpl implements S3AsyncUpload {
 
     if (metadata.getTags().isPresent() && CollectionUtils.isNotEmpty(metadata.getTags().get())) {
       Set<Tag> tagSet = new HashSet<>();
-      metadata.getTags().get().forEach((k, v) -> tagSet.add(Tag.builder().key(k).value(v).build()));
+      // replace all non alphanumeric characters from string
+      metadata.getTags().get().forEach((k, v) -> tagSet.add(Tag.builder().key(k.replaceAll("[^a-zA-Z0-9]", "")).value(v.replaceAll("[^a-zA-Z0-9]", "")).build()));
       requestBuilder.tagging(Tagging.builder().tagSet(tagSet).build());
     }
     metadata.getContentType().ifPresent(requestBuilder::contentType);
