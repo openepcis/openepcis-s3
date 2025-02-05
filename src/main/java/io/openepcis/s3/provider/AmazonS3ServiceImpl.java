@@ -19,6 +19,7 @@ import io.openepcis.s3.AmazonS3Service;
 import io.openepcis.s3.S3AsyncUpload;
 import io.openepcis.s3.UploadMetadata;
 import io.openepcis.s3.UploadResult;
+import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.annotation.PostConstruct;
@@ -155,7 +156,8 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
                   .getObjectTagging(
                       GetObjectTaggingRequest.builder().bucket(config.bucket()).key(key).build())
                   .tagSet());
-      tags.forEach((k, v) -> tagSet.add(Tag.builder().key(k).value(v).build()));
+      AmazonS3Service.cleanupTagSet(tags)
+              .forEach(entry -> tagSet.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build()));
       PutObjectTaggingResponse response =
           client.putObjectTagging(
               PutObjectTaggingRequest.builder()

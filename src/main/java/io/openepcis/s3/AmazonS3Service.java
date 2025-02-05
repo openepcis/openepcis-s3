@@ -15,16 +15,34 @@
  */
 package io.openepcis.s3;
 
-import io.smallrye.mutiny.Multi;
+import io.quarkus.logging.Log;
 import io.smallrye.mutiny.Uni;
 import software.amazon.awssdk.services.s3.model.ObjectVersion;
 
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public interface AmazonS3Service {
+
+  public static final String REGEX_VALID_S3_TAG_KEY = "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*)$";
+  public static final String REGEX_VALID_S3_TAG_VALUE = "^([\\p{L}\\p{Z}\\p{N}_.:/=+\\-]*)$";
+
+  public static final Pattern MATCH_VALID_S3_TAG_KEY = Pattern.compile(REGEX_VALID_S3_TAG_KEY);
+  public static final Pattern MATCH_VALID_S3_TAG_VALUE = Pattern.compile(REGEX_VALID_S3_TAG_VALUE);
+
+  static Stream<Map.Entry<String, String>> cleanupTagSet(Map<String, String> tags) {
+    return tags.entrySet().stream().filter(entry -> {
+      if (AmazonS3Service.MATCH_VALID_S3_TAG_KEY.matcher(entry.getKey()).matches() &&
+              AmazonS3Service.MATCH_VALID_S3_TAG_VALUE.matcher(entry.getValue()).matches()) {
+        return true;
+      } else {
+        Log.warn("invalid tag content: unable to use "+entry.getKey()+"="+entry.getValue() + " for S3 Tag");
+        return false;
+      }
+    });
+  }
 
   @Deprecated
   String put(final String key, final InputStream in, long contentLength);
