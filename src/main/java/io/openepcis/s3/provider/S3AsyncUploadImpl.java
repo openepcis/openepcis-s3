@@ -22,7 +22,6 @@ import io.openepcis.s3.AmazonS3Service;
 import io.openepcis.s3.S3AsyncUpload;
 import io.openepcis.s3.UploadMetadata;
 import io.openepcis.s3.UploadResult;
-import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.io.IOException;
 import java.io.InputStream;
@@ -125,7 +124,9 @@ public class S3AsyncUploadImpl implements S3AsyncUpload {
     if (metadata.getTags().isPresent() && CollectionUtils.isNotEmpty(metadata.getTags().get())) {
       Set<Tag> tagSet = new HashSet<>();
       AmazonS3Service.cleanupTagSet(metadata.getTags().get())
-              .forEach(entry -> tagSet.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build()));
+          .forEach(
+              entry ->
+                  tagSet.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build()));
       requestBuilder.tagging(Tagging.builder().tagSet(tagSet).build());
     }
     metadata.getContentType().ifPresent(requestBuilder::contentType);

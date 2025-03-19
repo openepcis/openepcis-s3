@@ -19,8 +19,6 @@ import io.openepcis.s3.AmazonS3Service;
 import io.openepcis.s3.S3AsyncUpload;
 import io.openepcis.s3.UploadMetadata;
 import io.openepcis.s3.UploadResult;
-import io.quarkus.logging.Log;
-import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -40,8 +38,6 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
   private final S3Client client;
 
   private final S3Config config;
-
-
 
   private final S3AsyncUpload asyncUpload;
 
@@ -93,20 +89,21 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
   }
 
   public InputStream get(final String key, Optional<String> versionId) {
-    final GetObjectRequest.Builder getObjectRequestBuilder = GetObjectRequest.builder().bucket(config.bucket()).key(key);
+    final GetObjectRequest.Builder getObjectRequestBuilder =
+        GetObjectRequest.builder().bucket(config.bucket()).key(key);
     if (versionId.isPresent()) {
       getObjectRequestBuilder.versionId(versionId.get());
     }
     return client.getObject(getObjectRequestBuilder.build(), ResponseTransformer.toInputStream());
   }
 
-//check for object version list
+  // check for object version list
   @Override
   public List<ObjectVersion> getAllVersions(String key) {
     final ListObjectVersionsRequest listObjectVersionsRequest =
-            ListObjectVersionsRequest.builder().bucket(config.bucket()).prefix(key).build();
+        ListObjectVersionsRequest.builder().bucket(config.bucket()).prefix(key).build();
     final ListObjectVersionsResponse listObjectVersionsResponse =
-            client.listObjectVersions(listObjectVersionsRequest);
+        client.listObjectVersions(listObjectVersionsRequest);
     return listObjectVersionsResponse.versions();
   }
 
@@ -120,17 +117,15 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
     objectVersions.sort(Comparator.comparing(ObjectVersion::lastModified).reversed());
     return objectVersions.get(0).versionId();
   }*/
-@Override
-  public boolean hasVersionId( String objectKey) {
+  @Override
+  public boolean hasVersionId(String objectKey) {
 
-  HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
-          .bucket(config.bucket())
-          .key(objectKey)
-          .build();
-  HeadObjectResponse headObjectResponse = client.headObject(headObjectRequest);
-  return headObjectResponse.versionId() != null;
+    HeadObjectRequest headObjectRequest =
+        HeadObjectRequest.builder().bucket(config.bucket()).key(objectKey).build();
+    HeadObjectResponse headObjectResponse = client.headObject(headObjectRequest);
+    return headObjectResponse.versionId() != null;
+  }
 
-}
   @Override
   public void delete(String key) {
     final DeleteObjectRequest deleteObjectRequest =
@@ -157,7 +152,9 @@ public class AmazonS3ServiceImpl implements AmazonS3Service {
                       GetObjectTaggingRequest.builder().bucket(config.bucket()).key(key).build())
                   .tagSet());
       AmazonS3Service.cleanupTagSet(tags)
-              .forEach(entry -> tagSet.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build()));
+          .forEach(
+              entry ->
+                  tagSet.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build()));
       PutObjectTaggingResponse response =
           client.putObjectTagging(
               PutObjectTaggingRequest.builder()
