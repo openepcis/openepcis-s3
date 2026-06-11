@@ -28,6 +28,7 @@
 
     <artifactId>openepcis-s3</artifactId>
 
+    <name>openepcis-s3</name>
     <description>OpenEPCIS S3 Simple Object Store Utils</description>
     <url>https://github.com/openepcis/openepcis-s3</url>
 
